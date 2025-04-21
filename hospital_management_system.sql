@@ -18,7 +18,6 @@ CREATE TABLE nurse (
     ssn VARCHAR(11) PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     surname VARCHAR(50) NOT NULL,
-    role VARCHAR(50),
     phone_number VARCHAR(20),
     email VARCHAR(100) UNIQUE,
     password VARCHAR(100)
