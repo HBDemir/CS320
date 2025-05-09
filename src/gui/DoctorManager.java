@@ -244,7 +244,7 @@ public class DoctorManager extends JFrame {
             doctor.setE_mail(email);
             doctor.setPhone(phone);
             
-            // Update password only if new one was provided
+            // Update password 
             if (!newPassword.isEmpty()) {
                 doctor.setPassword(newPassword);
             }

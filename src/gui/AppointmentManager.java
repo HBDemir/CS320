@@ -93,25 +93,22 @@ public class AppointmentManager extends JFrame {
     }
 
     private void refreshData() {
-        // Безопасное получение докторов
         List<Doctor> doctors = userDAO.getUsersByRole("Doctor").stream()
             .filter(user -> user instanceof Doctor)
             .map(user -> (Doctor) user)
             .collect(Collectors.toList());
         
-        // Безопасное получение пациентов
         List<Patient> patients = userDAO.getUsersByRole("Patient").stream()
             .filter(user -> user instanceof Patient)
             .map(user -> (Patient) user)
             .collect(Collectors.toList());
 
-        // Обновление комбобоксов
         doctorComboBox.removeAllItems();
         patientComboBox.removeAllItems();
         doctors.forEach(doctorComboBox::addItem);
         patients.forEach(patientComboBox::addItem);
         
-        // Обновление таблицы
+       
         refreshAppointmentTable();
     }
 
