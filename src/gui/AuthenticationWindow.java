@@ -55,7 +55,7 @@ public class AuthenticationWindow {
                 User user = userDAO.authenticateUser(ssn,password);
                 if (Objects.equals(user.getUserRole(), "Doctor")){
                     mainWindow.setVisible(true);
-                    //doctorWindow.setVisible(true);
+                    //doctorWindow.setVisible(true); // Nurse ve Doctor için ayrı pencere açılması gerekiyorsa diye ekledim.
                 }
                 else if (Objects.equals(user.getUserRole(), "Nurse")){
                     mainWindow.setVisible(true);
