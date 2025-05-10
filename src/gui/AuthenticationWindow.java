@@ -1,8 +1,10 @@
 package gui;
 import DAO.UserDAO;
+import Library.Nurse;
 import Library.User;
 import com.sun.tools.javac.Main;
 
+import javax.print.Doc;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -13,7 +15,7 @@ public class AuthenticationWindow {
 
     public static void main(String[] args) {
 
-        MainWindow mainWindow = new MainWindow();
+
         UserDAO userDAO = new UserDAO();
         JFrame frame = new JFrame("Authentication");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -48,28 +50,25 @@ public class AuthenticationWindow {
         gbc.gridy = 2;
         frame.add(loginButton, gbc);
 
-       loginButton.addActionListener(new ActionListener() {
-    public void actionPerformed(ActionEvent e) {
-        String ssn = ssnField.getText();
-        String password = new String(passwordField.getPassword());
-        User user = userDAO.authenticateUser(ssn, password);
-        
-        if (user != null) {
-            if ("Doctor".equals(user.getUserRole())) {
-                new DoctorWindow().setVisible(true);
-                frame.dispose();
-            } else if ("Nurse".equals(user.getUserRole())) {
-                new NurseWindow().setVisible(true);
-                frame.dispose();
-            } else {
-                JOptionPane.showMessageDialog(frame, "Unknown role: " + user.getUserRole());
-            }
-        } else {
-            JOptionPane.showMessageDialog(frame, "Invalid SSN or password.");
-        }
-    }
-});
+        loginButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String ssn = ssnField.getText();
+                String password = new String(passwordField.getPassword());
+                User user = userDAO.authenticateUser(ssn,password);
+                if (Objects.equals(user.getUserRole(), "Doctor")){
+                    DoctorWindow doctorWindow = new DoctorWindow();
+                    doctorWindow.setVisible(true);
 
+                }
+                else if (Objects.equals(user.getUserRole(), "Nurse")){
+                    NurseWindow nurseWindow = new NurseWindow();
+                    nurseWindow.setVisible(true);
+                }
+
+
+
+            }
+        });
 
         frame.setVisible(true);
     }
