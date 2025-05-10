@@ -48,24 +48,28 @@ public class AuthenticationWindow {
         gbc.gridy = 2;
         frame.add(loginButton, gbc);
 
-        loginButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String ssn = ssnField.getText();
-                String password = new String(passwordField.getPassword());
-                User user = userDAO.authenticateUser(ssn,password);
-                if (Objects.equals(user.getUserRole(), "Doctor")){
-                    mainWindow.setVisible(true);
-                    //doctorWindow.setVisible(true); // Nurse ve Doctor için ayrı pencere açılması gerekiyorsa diye ekledim.
-                }
-                else if (Objects.equals(user.getUserRole(), "Nurse")){
-                    mainWindow.setVisible(true);
-                    //nurseWindow.setvisible(true)   // Nurse ve Doctor için ayrı pencere açılması gerekiyorsa diye ekledim.
-                }
-
-
-
+       loginButton.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent e) {
+        String ssn = ssnField.getText();
+        String password = new String(passwordField.getPassword());
+        User user = userDAO.authenticateUser(ssn, password);
+        
+        if (user != null) {
+            if ("Doctor".equals(user.getUserRole())) {
+                new DoctorWindow().setVisible(true);
+                frame.dispose();
+            } else if ("Nurse".equals(user.getUserRole())) {
+                new NurseWindow().setVisible(true);
+                frame.dispose();
+            } else {
+                JOptionPane.showMessageDialog(frame, "Unknown role: " + user.getUserRole());
             }
-        });
+        } else {
+            JOptionPane.showMessageDialog(frame, "Invalid SSN or password.");
+        }
+    }
+});
+
 
         frame.setVisible(true);
     }
