@@ -5,15 +5,15 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
-    private static final String URL = "jdbc:postgresql://localhost:5432/veritabani_adi";
-    private static final String USER = "kullanici_adi";
-    private static final String PASSWORD = "sifre";
+    private static final String URL = "jdbc:postgresql://localhost:5432/hms";
+    private static final String USER = "postgres";
+    private static final String PASSWORD = "hms2025";
 
     private static Connection connection = null;
 
     // Bağlantıyı almak için statik metot
-    public static Connection getConnection() {
-        if (connection == null) {
+    public static Connection getConnection() throws SQLException {
+        if (connection == null || connection.isClosed()) {
             try {
                 // PostgreSQL JDBC driver'ı yükle
                 Class.forName("org.postgresql.Driver");

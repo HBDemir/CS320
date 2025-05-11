@@ -18,7 +18,7 @@ public class AppointmentDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, appointment.getDate());
+            pstmt.setTimestamp(1, Timestamp.valueOf(appointment.getDate()));
             pstmt.setString(2, appointment.getDoctor().getSsn());
             pstmt.setString(3, appointment.getPatient().getSsn());
 
@@ -49,7 +49,7 @@ public class AppointmentDAO {
                 Doctor doctor = (Doctor) userDAO.getUserBySSN(doctorSsn);
                 Patient patient = (Patient) userDAO.getUserBySSN(patientSsn);
 
-                return new Appointment(date, doctor, patient);
+                return new Appointment(appointmentId, date, doctor, patient); // ✅ ID'li constructor
             }
 
             return null;
@@ -72,13 +72,14 @@ public class AppointmentDAO {
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
+                int id = rs.getInt("appointment_id"); // ✅ sadece eklendi
                 String date = rs.getString("date");
                 String patientSsn = rs.getString("patient_ssn");
 
                 Doctor doctor = (Doctor) userDAO.getUserBySSN(doctorSsn);
                 Patient patient = (Patient) userDAO.getUserBySSN(patientSsn);
 
-                appointments.add(new Appointment(date, doctor, patient));
+                appointments.add(new Appointment(id, date, doctor, patient)); // ✅ ID'li versiyon
             }
 
             return appointments;
@@ -101,13 +102,14 @@ public class AppointmentDAO {
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
+                int id = rs.getInt("appointment_id"); // ✅ sadece eklendi
                 String date = rs.getString("date");
                 String doctorSsn = rs.getString("doctor_ssn");
 
                 Doctor doctor = (Doctor) userDAO.getUserBySSN(doctorSsn);
                 Patient patient = (Patient) userDAO.getUserBySSN(patientSsn);
 
-                appointments.add(new Appointment(date, doctor, patient));
+                appointments.add(new Appointment(id, date, doctor, patient)); // ✅ ID'li versiyon
             }
 
             return appointments;
@@ -125,7 +127,7 @@ public class AppointmentDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, newDate);
+            pstmt.setTimestamp(1, Timestamp.valueOf(newDate));
             pstmt.setInt(2, appointmentId);
 
             int rowsAffected = pstmt.executeUpdate();
@@ -155,7 +157,7 @@ public class AppointmentDAO {
             return false;
         }
     }
-    
+
     public ArrayList<Appointment> getAllAppointments() {
         ArrayList<Appointment> appointments = new ArrayList<>();
         String sql = "SELECT * FROM Appointments ORDER BY date";
@@ -165,6 +167,7 @@ public class AppointmentDAO {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
+                int id = rs.getInt("appointment_id"); // ✅ sadece eklendi
                 String date = rs.getString("date");
                 String doctorSsn = rs.getString("doctor_ssn");
                 String patientSsn = rs.getString("patient_ssn");
@@ -172,7 +175,7 @@ public class AppointmentDAO {
                 Doctor doctor = (Doctor) userDAO.getUserBySSN(doctorSsn);
                 Patient patient = (Patient) userDAO.getUserBySSN(patientSsn);
 
-                appointments.add(new Appointment(date, doctor, patient));
+                appointments.add(new Appointment(id, date, doctor, patient)); // ✅ ID'li versiyon
             }
 
             return appointments;

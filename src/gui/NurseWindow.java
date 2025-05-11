@@ -1,7 +1,10 @@
 package gui;
 
+import DAO.AppointmentDAO;
 import DAO.UserDAO;
-import Library.User;
+import Library.Appointment;
+import Library.Nurse;
+import Library.Patient;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -9,96 +12,180 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class NurseWindow extends JFrame {
-
+    private final Nurse nurse;
     private final UserDAO userDAO = new UserDAO();
-    private JTable nurseTable;
-    private DefaultTableModel tableModel;
-    private JTextField searchField;
+    private final AppointmentDAO appointmentDAO = new AppointmentDAO();
 
-    public NurseWindow() {
-        setTitle("Nurse List");
-        setSize(900, 500);
+    private JTable table;
+    private JTextArea detailArea;
+
+    private enum ViewMode { NONE, APPOINTMENTS, PATIENTS }
+    private ViewMode currentView = ViewMode.NONE;
+
+    public NurseWindow(Nurse nurse) {
+        this.nurse = nurse;
+
+        setTitle("Nurse Panel - " + nurse.getUserName());
+        setSize(1000, 600);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        initComponents();
-        layoutComponents();
-        refreshNurseTable();
+        JTabbedPane tabbedPane = new JTabbedPane();
+
+        // Profile tab
+        JPanel profileTab = new JPanel(new GridLayout(6, 2));
+        profileTab.add(new JLabel("Name:")); profileTab.add(new JLabel(nurse.getUserName()));
+        profileTab.add(new JLabel("Surname:")); profileTab.add(new JLabel(nurse.getUserSurname()));
+        profileTab.add(new JLabel("Email:")); profileTab.add(new JLabel(nurse.getE_mail()));
+        profileTab.add(new JLabel("Phone:")); profileTab.add(new JLabel(nurse.getPhone()));
+        profileTab.add(new JLabel("Role:")); profileTab.add(new JLabel(nurse.getUserRole()));
+        profileTab.add(new JLabel("SSN:")); profileTab.add(new JLabel(nurse.getSsn()));
+
+        tabbedPane.addTab("Profile", profileTab);
+
+        // Workspace tab
+        JPanel workPanel = new JPanel(new BorderLayout());
+
+        // Üst Panel
+        JPanel topPanel = new JPanel();
+        JButton viewAllAppointmentsBtn = new JButton("View All Appointments");
+        JButton viewPatientsBtn = new JButton("View Patients");
+        JButton sendEmailBtn = new JButton("Send Email");
+
+        topPanel.add(viewAllAppointmentsBtn);
+        topPanel.add(viewPatientsBtn);
+        topPanel.add(sendEmailBtn);
+
+        // Orta Panel
+        table = new JTable();
+        JScrollPane tableScroll = new JScrollPane(table);
+
+        // Sağ Panel
+        detailArea = new JTextArea(10, 25);
+        detailArea.setEditable(false);
+        JScrollPane detailScroll = new JScrollPane(detailArea);
+
+        // Alt Panel
+        JPanel bottomPanel = new JPanel();
+        JButton createAppointmentBtn = new JButton("Create Appointment");
+        JButton rescheduleAppointmentBtn = new JButton("Reschedule Appointment");
+        JButton deleteAppointmentBtn = new JButton("Delete Appointment");
+        JButton registerPatientBtn = new JButton("Register New Patient");
+
+        bottomPanel.add(createAppointmentBtn);
+        bottomPanel.add(rescheduleAppointmentBtn);
+        bottomPanel.add(deleteAppointmentBtn);
+        bottomPanel.add(registerPatientBtn);
+
+        // Workspace Panel'e tüm bileşenleri yerleştir
+        workPanel.add(topPanel, BorderLayout.NORTH);
+        workPanel.add(tableScroll, BorderLayout.CENTER);
+        workPanel.add(detailScroll, BorderLayout.EAST);
+        workPanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        tabbedPane.addTab("Workspace", workPanel);
+
+        add(tabbedPane);
+
+        // Buton Aksiyonları
+        viewAllAppointmentsBtn.addActionListener(e -> refreshAppointmentsTable());
+        viewPatientsBtn.addActionListener(e -> refreshPatientsTable());
+        sendEmailBtn.addActionListener(e -> sendEmailToPatient());
+
+        createAppointmentBtn.addActionListener(e -> {
+            new CreateAppointmentDialog(this, nurse);
+            refresh();
+        });
+
+        rescheduleAppointmentBtn.addActionListener(e -> {
+            new RescheduleAppointmentDialog(this, nurse);
+            refresh();
+        });
+
+        deleteAppointmentBtn.addActionListener(e -> {
+            new DeleteAppointmentDialog(this, nurse);
+            refresh();
+        });
+
+        registerPatientBtn.addActionListener(e -> {
+            new RegisterPatientDialog(this, nurse);
+            refresh();
+        });
+
+        setVisible(true);
     }
 
-    private void initComponents() {
-        tableModel = new DefaultTableModel(
-            new Object[]{"SSN", "Name", "Surname", "Email", "Phone"}, 0
-        ) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; // sadece görüntüleme
-            }
-        };
+    private void refreshAppointmentsTable() {
+        ArrayList<Appointment> appointments = appointmentDAO.getAllAppointments();
 
-        nurseTable = new JTable(tableModel);
-        nurseTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        String[] cols = {"Date", "Patient Name", "Doctor Name"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0);
 
-        searchField = new JTextField(20);
-    }
-
-    private void layoutComponents() {
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-        // Search Panel
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        searchPanel.add(new JLabel("Search:"));
-        searchPanel.add(searchField);
-
-        JButton searchButton = new JButton("Search");
-        searchButton.addActionListener(e -> searchNurses());
-        searchPanel.add(searchButton);
-
-        // Table inside scroll
-        JScrollPane scrollPane = new JScrollPane(nurseTable);
-
-        mainPanel.add(searchPanel, BorderLayout.NORTH);
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
-
-        add(mainPanel);
-    }
-
-    private void refreshNurseTable() {
-        tableModel.setRowCount(0);
-        ArrayList<User> nurses = userDAO.getUsersByRole("Nurse");
-
-        for (User nurse : nurses) {
-            tableModel.addRow(new Object[]{
-                nurse.getSsn(),
-                nurse.getUserName(),
-                nurse.getUserSurname(),
-                nurse.getE_mail(),
-                nurse.getPhone()
+        for (Appointment a : appointments) {
+            model.addRow(new Object[]{
+                    a.getDate(),
+                    a.getPatient().getUserName() + " " + a.getPatient().getUserSurname(),
+                    a.getDoctor().getUserName() + " " + a.getDoctor().getUserSurname()
             });
+        }
+
+        table.setModel(model);
+        detailArea.setText("All appointments listed.");
+        currentView = ViewMode.APPOINTMENTS;
+    }
+
+    private void refreshPatientsTable() {
+        ArrayList<Patient> patients = new ArrayList<>();
+        for (var user : userDAO.getUsersByRole("Patient")) {
+            if (user instanceof Patient p) {
+                patients.add(p);
+            }
+        }
+
+        String[] cols = {"SSN", "Name", "Email"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0);
+
+        for (Patient p : patients) {
+            model.addRow(new Object[]{
+                    p.getSsn(),
+                    p.getUserName() + " " + p.getUserSurname(),
+                    p.getE_mail()
+            });
+        }
+
+        table.setModel(model);
+        detailArea.setText("Patients listed.");
+        currentView = ViewMode.PATIENTS;
+    }
+
+    private void refresh() {
+        switch (currentView) {
+            case APPOINTMENTS -> refreshAppointmentsTable();
+            case PATIENTS -> refreshPatientsTable();
+            default -> table.setModel(new DefaultTableModel());
         }
     }
 
-    private void searchNurses() {
-        String searchTerm = searchField.getText().trim().toLowerCase();
-        tableModel.setRowCount(0);
+    private void sendEmailToPatient() {
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a row with appointment info.");
+            return;
+        }
 
-        ArrayList<User> nurses = userDAO.getUsersByRole("Nurse");
-        for (User nurse : nurses) {
-            if (nurse.getSsn().toLowerCase().contains(searchTerm) ||
-                nurse.getUserName().toLowerCase().contains(searchTerm) ||
-                nurse.getUserSurname().toLowerCase().contains(searchTerm) ||
-                (nurse.getE_mail() != null && nurse.getE_mail().toLowerCase().contains(searchTerm)) ||
-                (nurse.getPhone() != null && nurse.getPhone().toLowerCase().contains(searchTerm))) {
+        String email = JOptionPane.showInputDialog(this, "Enter patient's email to notify:");
 
-                tableModel.addRow(new Object[]{
-                    nurse.getSsn(),
-                    nurse.getUserName(),
-                    nurse.getUserSurname(),
-                    nurse.getE_mail(),
-                    nurse.getPhone()
-                });
+        if (email != null && !email.isBlank()) {
+            ArrayList<Appointment> appointments = appointmentDAO.getAllAppointments();
+            if (row < appointments.size()) {
+                Appointment selected = appointments.get(row);
+                nurse.sendEmail(email, selected);
+                detailArea.setText("Email sent to: " + email);
+            } else {
+                JOptionPane.showMessageDialog(this, "Appointment selection mismatch.");
             }
+        } else {
+            JOptionPane.showMessageDialog(this, "Invalid email.");
         }
     }
 }
