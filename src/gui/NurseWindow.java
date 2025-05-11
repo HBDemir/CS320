@@ -18,6 +18,7 @@ public class NurseWindow extends JFrame {
 
     private JTable table;
     private JTextArea detailArea;
+    private JTextField searchField;
 
     private enum ViewMode { NONE, APPOINTMENTS, PATIENTS }
     private ViewMode currentView = ViewMode.NONE;
@@ -46,26 +47,31 @@ public class NurseWindow extends JFrame {
         // Workspace tab
         JPanel workPanel = new JPanel(new BorderLayout());
 
-        // Üst Panel
-        JPanel topPanel = new JPanel();
+        // Top panel
+        JPanel topPanel = new JPanel(new FlowLayout());
         JButton viewAllAppointmentsBtn = new JButton("View All Appointments");
         JButton viewPatientsBtn = new JButton("View Patients");
         JButton sendEmailBtn = new JButton("Send Email");
 
+        searchField = new JTextField(15);
+        JButton searchBtn = new JButton("Search Patient");
+
         topPanel.add(viewAllAppointmentsBtn);
         topPanel.add(viewPatientsBtn);
         topPanel.add(sendEmailBtn);
+        topPanel.add(searchField);
+        topPanel.add(searchBtn);
 
-        // Orta Panel
+        // Table center
         table = new JTable();
         JScrollPane tableScroll = new JScrollPane(table);
 
-        // Sağ Panel
+        // Detail area right
         detailArea = new JTextArea(10, 25);
         detailArea.setEditable(false);
         JScrollPane detailScroll = new JScrollPane(detailArea);
 
-        // Alt Panel
+        // Bottom panel
         JPanel bottomPanel = new JPanel();
         JButton createAppointmentBtn = new JButton("Create Appointment");
         JButton rescheduleAppointmentBtn = new JButton("Reschedule Appointment");
@@ -77,17 +83,15 @@ public class NurseWindow extends JFrame {
         bottomPanel.add(deleteAppointmentBtn);
         bottomPanel.add(registerPatientBtn);
 
-        // Workspace Panel'e tüm bileşenleri yerleştir
         workPanel.add(topPanel, BorderLayout.NORTH);
         workPanel.add(tableScroll, BorderLayout.CENTER);
         workPanel.add(detailScroll, BorderLayout.EAST);
         workPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         tabbedPane.addTab("Workspace", workPanel);
-
         add(tabbedPane);
 
-        // Buton Aksiyonları
+        // Button actions
         viewAllAppointmentsBtn.addActionListener(e -> refreshAppointmentsTable());
         viewPatientsBtn.addActionListener(e -> refreshPatientsTable());
         sendEmailBtn.addActionListener(e -> sendEmailToPatient());
@@ -111,6 +115,8 @@ public class NurseWindow extends JFrame {
             new RegisterPatientDialog(this, nurse);
             refresh();
         });
+
+        searchBtn.addActionListener(e -> searchPatientsByKeyword());
 
         setVisible(true);
     }
@@ -187,5 +193,29 @@ public class NurseWindow extends JFrame {
         } else {
             JOptionPane.showMessageDialog(this, "Invalid email.");
         }
+    }
+
+    private void searchPatientsByKeyword() {
+        String keyword = searchField.getText().trim();
+        if (keyword.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a keyword.");
+            return;
+        }
+
+        ArrayList<Patient> patients = userDAO.searchPatients(keyword);
+        String[] cols = {"SSN", "Name", "Email"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0);
+
+        for (Patient p : patients) {
+            model.addRow(new Object[]{
+                    p.getSsn(),
+                    p.getUserName() + " " + p.getUserSurname(),
+                    p.getE_mail()
+            });
+        }
+
+        table.setModel(model);
+        detailArea.setText("Search results for: " + keyword);
+        currentView = ViewMode.PATIENTS;
     }
 }

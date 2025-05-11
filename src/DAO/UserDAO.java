@@ -24,7 +24,7 @@ public class UserDAO {
             pstmt.setString(4, user.getUserRole());
             pstmt.setString(5, user.getE_mail());
             pstmt.setString(6, user.getPhone());
-            pstmt.setString(7, user.getPassword());
+            pstmt.setString(7, HashUtil.sha256(user.getPassword()));
 
             int rowsAffected = pstmt.executeUpdate();
 
@@ -107,7 +107,7 @@ public class UserDAO {
             pstmt.setString(3, user.getUserRole());
             pstmt.setString(4, user.getE_mail());
             pstmt.setString(5, user.getPhone());
-            pstmt.setString(6, user.getPassword());
+            pstmt.setString(6, HashUtil.sha256(user.getPassword()));
             pstmt.setString(7, user.getSsn());
 
             int rowsAffected = pstmt.executeUpdate();
@@ -235,7 +235,7 @@ public class UserDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, ssn);
-            pstmt.setString(2, password);
+            pstmt.setString(2, HashUtil.sha256(password));
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
@@ -261,5 +261,37 @@ public class UserDAO {
             e.printStackTrace();
             return null;
         }
+    }
+    public ArrayList<Patient> searchPatients(String keyword) {
+        ArrayList<Patient> result = new ArrayList<>();
+        String sql = "SELECT * FROM Users WHERE userRole = 'Patient' AND " +
+                "(ssn ILIKE ? OR userName ILIKE ? OR userSurname ILIKE ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            String likeTerm = "%" + keyword + "%";
+            pstmt.setString(1, likeTerm);
+            pstmt.setString(2, likeTerm);
+            pstmt.setString(3, likeTerm);
+
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                result.add(new Patient(
+                        rs.getString("ssn"),
+                        rs.getString("userName"),
+                        rs.getString("userSurname"),
+                        rs.getString("userRole"),
+                        rs.getString("e_mail"),
+                        rs.getString("phone")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error searching patients: " + e.getMessage());
+        }
+
+        return result;
     }
 }
