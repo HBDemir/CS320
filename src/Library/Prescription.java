@@ -21,16 +21,18 @@ public class Prescription extends Treatment{
 
     public ArrayList<String[]> getMedication() {
         ArrayList<String[]>medication=new ArrayList<>();
-        String [] tmp= new String[2];
-        for (int i=0;i<medicationName.size();i++){
-            tmp[0]= medicationName.get(i);
-            tmp[1]=dosage.get(i);
-            medication.add(tmp);
-
-
-
+        if (medicationName == null || dosage == null || medicationName.size() != dosage.size()) {
+            // Handle potential mismatch or null lists - return empty list
+            return medication;
         }
-        return medication;}
+        for (int i=0; i < medicationName.size(); i++) {
+            String [] tmp = new String[2]; // Create a NEW array for each medication
+            tmp[0] = medicationName.get(i);
+            tmp[1] = dosage.get(i);
+            medication.add(tmp);
+        }
+        return medication;
+    }
 
     public double getPrescriptionID() {
         return prescriptionID;
