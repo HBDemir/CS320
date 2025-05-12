@@ -14,9 +14,9 @@ import DAO.UserDAO;
 import Library.Doctor;
 import Library.Nurse;
 import Library.User;
-import gui.LoginPanel;
-import gui.DoctorWindow;
-import gui.NurseWindow;
+import GUI.LoginPanel;
+import GUI.DoctorWindow;
+import GUI.NurseWindow;
 
 /**
  * Simple test case to verify login functionality of the HMS

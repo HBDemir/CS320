@@ -1,5 +1,5 @@
 public class Main {
     public static void main(String[] args) {
-        javax.swing.SwingUtilities.invokeLater(() -> new gui.LoginPanel());
+        javax.swing.SwingUtilities.invokeLater(() -> new GUI.LoginPanel());
     }
 }

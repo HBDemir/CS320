@@ -1,4 +1,4 @@
-package gui;
+package GUI;
 
 import DAO.UserDAO;
 import Library.Doctor;
