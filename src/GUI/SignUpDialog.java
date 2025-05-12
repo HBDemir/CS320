@@ -1,9 +1,8 @@
-package gui;
+package GUI;
 
 import DAO.UserDAO;
 import Library.Doctor;
 import Library.Nurse;
-import Library.Patient;
 import Library.User;
 
 import javax.swing.*;

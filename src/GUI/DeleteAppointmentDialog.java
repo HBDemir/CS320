@@ -1,4 +1,4 @@
-package gui;
+package GUI;
 
 import DAO.AppointmentDAO;
 import Library.Nurse;
