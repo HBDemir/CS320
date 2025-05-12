@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    build: .
+    container_name: hms_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: hms
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hms2025
+
+volumes:
+  pgdata:
