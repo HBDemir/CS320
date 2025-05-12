@@ -6,7 +6,7 @@ import Library.Appointment;
 import Library.Doctor;
 import Library.Nurse;
 import Library.Patient;
-
+import Library.User;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -38,9 +38,26 @@ public class CreateAppointmentDialog extends JDialog {
             String pssn = patientSsnField.getText();
             String dssn = doctorSsnField.getText();
 
-            Patient patient = (Patient) new UserDAO().getUserBySSN(pssn);
-            Doctor doctor = (Doctor) new UserDAO().getUserBySSN(dssn);
-            if (patient == null || doctor == null) {
+            User patientUser = new UserDAO().getUserBySSN(pssn);
+            User doctorUser = new UserDAO().getUserBySSN(dssn);
+
+            if (patientUser == null || doctorUser == null) {
+                JOptionPane.showMessageDialog(this, "Doctor or patient not found");
+                return;
+            }
+
+            if (!(patientUser instanceof Patient)) {
+                JOptionPane.showMessageDialog(this, "The SSN " + pssn + " belongs to a " + patientUser.getUserRole() + ", not a Patient.");
+                return;
+            }
+
+            if (!(doctorUser instanceof Doctor)) {
+                JOptionPane.showMessageDialog(this, "The SSN " + dssn + " belongs to a " + doctorUser.getUserRole() + ", not a Doctor.");
+                return;
+            }
+
+            Patient patient = (Patient) patientUser;
+            Doctor doctor = (Doctor) doctorUser;            if (patient == null || doctor == null) {
                 JOptionPane.showMessageDialog(this, "Doctor or patient not found");
                 return;
             }

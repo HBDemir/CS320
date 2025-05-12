@@ -5,6 +5,7 @@ import DAO.TreatmentDAO;
 import Library.Doctor;
 import Library.Patient;
 import Library.Operation;
+import Library.User;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,7 +35,16 @@ public class CreateOperationDialog extends JDialog {
         createBtn.addActionListener((ActionEvent e) -> {
             try {
                 String ssn = ssnField.getText().trim();
-                Patient patient = (Patient) new UserDAO().getUserBySSN(ssn);
+                User user = new UserDAO().getUserBySSN(ssn);
+                if (user == null) {
+                    JOptionPane.showMessageDialog(this, "User not found.");
+                    return;
+                }
+                if (!(user instanceof Patient)) {
+                    JOptionPane.showMessageDialog(this, "The SSN belongs to a " + user.getUserRole() + ", not a Patient.");
+                    return;
+                }
+                Patient patient = (Patient) user;
                 if (patient == null) {
                     JOptionPane.showMessageDialog(this, "Patient not found."); return;
                 }
